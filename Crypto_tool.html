@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Tool - Hash, Encrypt, Decrypt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        textarea, input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            word-wrap: break-word;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #eee;
+            border: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .info {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Crypto Tool - Hash, Encrypt & Decrypt</h1>
+    
+    <div class="container">
+        <div class="section">
+            <h2>Hashing</h2>
+            <textarea id="hashInput" placeholder="Enter text to hash"></textarea>
+            <select id="hashAlgorithm">
+                <option value="MD5">MD5</option>
+                <option value="SHA1">SHA-1</option>
+                <option value="SHA256" selected>SHA-256</option>
+                <option value="SHA512">SHA-512</option>
+                <option value="SHA3">SHA-3</option>
+            </select>
+            <button onclick="generateHash()">Generate Hash</button>
+            <div class="result" id="hashResult"></div>
+            <p class="info">Hashing is a one-way process. Hashed data cannot be decrypted.</p>
+        </div>
+        
+        <div class="section">
+            <div class="tabs">
+                <button class="tab active" onclick="openTab(event, 'encryptTab')">Encrypt</button>
+                <button class="tab" onclick="openTab(event, 'decryptTab')">Decrypt</button>
+            </div>
+            
+            <div id="encryptTab" class="tab-content active">
+                <h2>Encryption</h2>
+                <textarea id="encryptInput" placeholder="Enter text to encrypt"></textarea>
+                <input type="text" id="encryptKey" placeholder="Enter encryption key">
+                <select id="encryptAlgorithm">
+                    <option value="AES">AES</option>
+                    <option value="TripleDES">Triple DES</option>
+                    <option value="Rabbit">Rabbit</option>
+                    <option value="RC4">RC4</option>
+                </select>
+                <button onclick="encryptText()">Encrypt</button>
+                <div class="result" id="encryptResult"></div>
+            </div>
+            
+            <div id="decryptTab" class="tab-content">
+                <h2>Decryption</h2>
+                <textarea id="decryptInput" placeholder="Enter text to decrypt"></textarea>
+                <input type="text" id="decryptKey" placeholder="Enter decryption key">
+                <select id="decryptAlgorithm">
+                    <option value="AES">AES</option>
+                    <option value="TripleDES">Triple DES</option>
+                    <option value="Rabbit">Rabbit</option>
+                    <option value="RC4">RC4</option>
+                </select>
+                <button onclick="decryptText()">Decrypt</button>
+                <div class="result" id="decryptResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            
+            const tabs = document.getElementsByClassName("tab");
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        // Hash generation
+        function generateHash() {
+            const input = document.getElementById("hashInput").value;
+            const algorithm = document.getElementById("hashAlgorithm").value;
+            
+            if (!input) {
+                alert("Please enter some text to hash");
+                return;
+            }
+            
+            let hash;
+            switch(algorithm) {
+                case "MD5":
+                    hash = CryptoJS.MD5(input).toString();
+                    break;
+                case "SHA1":
+                    hash = CryptoJS.SHA1(input).toString();
+                    break;
+                case "SHA256":
+                    hash = CryptoJS.SHA256(input).toString();
+                    break;
+                case "SHA512":
+                    hash = CryptoJS.SHA512(input).toString();
+                    break;
+                case "SHA3":
+                    hash = CryptoJS.SHA3(input).toString();
+                    break;
+                default:
+                    hash = "Unsupported algorithm";
+            }
+            
+            document.getElementById("hashResult").innerHTML = `<strong>${algorithm} Hash:</strong><br>${hash}`;
+        }
+        
+        // Encryption
+        function encryptText() {
+            const input = document.getElementById("encryptInput").value;
+            const key = document.getElementById("encryptKey").value;
+            const algorithm = document.getElementById("encryptAlgorithm").value;
+            
+            if (!input) {
+                alert("Please enter some text to encrypt");
+                return;
+            }
+            
+            if (!key) {
+                alert("Please enter an encryption key");
+                return;
+            }
+            
+            let encrypted;
+            try {
+                switch(algorithm) {
+                    case "AES":
+                        encrypted = CryptoJS.AES.encrypt(input, key).toString();
+                        break;
+                    case "TripleDES":
+                        encrypted = CryptoJS.TripleDES.encrypt(input, key).toString();
+                        break;
+                    case "Rabbit":
+                        encrypted = CryptoJS.Rabbit.encrypt(input, key).toString();
+                        break;
+                    case "RC4":
+                        encrypted = CryptoJS.RC4.encrypt(input, key).toString();
+                        break;
+                    default:
+                        encrypted = "Unsupported algorithm";
+                }
+                
+                document.getElementById("encryptResult").innerHTML = `
+                    <strong>Encrypted (${algorithm}):</strong><br>${encrypted}<br><br>
+                    <strong>Note:</strong> Save this encrypted text and use the same algorithm and key to decrypt it later.
+                `;
+            } catch (e) {
+                document.getElementById("encryptResult").innerHTML = `Error: ${e.message}`;
+            }
+        }
+        
+        // Decryption
+        function decryptText() {
+            const input = document.getElementById("decryptInput").value;
+            const key = document.getElementById("decryptKey").value;
+            const algorithm = document.getElementById("decryptAlgorithm").value;
+            
+            if (!input) {
+                alert("Please enter some text to decrypt");
+                return;
+            }
+            
+            if (!key) {
+                alert("Please enter a decryption key");
+                return;
+            }
+            
+            let decrypted;
+            try {
+                let bytes;
+                switch(algorithm) {
+                    case "AES":
+                        bytes = CryptoJS.AES.decrypt(input, key);
+                        break;
+                    case "TripleDES":
+                        bytes = CryptoJS.TripleDES.decrypt(input, key);
+                        break;
+                    case "Rabbit":
+                        bytes = CryptoJS.Rabbit.decrypt(input, key);
+                        break;
+                    case "RC4":
+                        bytes = CryptoJS.RC4.decrypt(input, key);
+                        break;
+                    default:
+                        bytes = "Unsupported algorithm";
+                }
+                
+                decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                
+                if (!decrypted) {
+                    document.getElementById("decryptResult").innerHTML = `
+                        <strong>Decryption failed!</strong><br>
+                        Possible reasons:<br>
+                        - Wrong key<br>
+                        - Wrong algorithm<br>
+                        - Corrupted encrypted text
+                    `;
+                } else {
+                    document.getElementById("decryptResult").innerHTML = `
+                        <strong>Decrypted (${algorithm}):</strong><br>${decrypted}
+                    `;
+                }
+            } catch (e) {
+                document.getElementById("decryptResult").innerHTML = `Error: ${e.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
